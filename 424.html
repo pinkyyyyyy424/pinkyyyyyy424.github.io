@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>愛豆戀愛模擬器</title>
+
+<style>
+body{
+    font-family:"Microsoft JhengHei",sans-serif;
+    background:linear-gradient(135deg,#ffd6e7,#ffeef5);
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:90%;
+    max-width:700px;
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+h1{
+    text-align:center;
+    color:#ff4f8b;
+}
+
+#question{
+    font-size:22px;
+    margin:25px 0;
+    line-height:1.6;
+}
+
+.stats{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+    font-weight:bold;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    margin:8px 0;
+    border:none;
+    border-radius:12px;
+    background:#ff6fa3;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+.ending{
+    text-align:center;
+    line-height:1.8;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💖 愛豆戀愛模擬器</h1>
+
+    <div class="stats">
+        <span>好感度：<span id="love">0</span></span>
+        <span>曝光值：<span id="exposure">0</span></span>
+    </div>
+
+    <div id="question"></div>
+    <div id="choices"></div>
+</div>
+
+<script>
+
+let love=0;
+let exposure=0;
+let q=0;
+let chose18B=false;
+
+const questions=[
+
+{
+q:"簽售會上，他突然記住了你的名字。",
+a:[
+["開心地和他聊天",2,0],
+["故作鎮定",1,0],
+["直接問他是不是特別關注你",3,0]
+]
+},
+
+{
+q:"活動結束後，你收到陌生帳號訊息：「今天見到妳很開心。」",
+a:[
+["禮貌回覆",1,0],
+["試探對方身份",2,0],
+["直接猜是愛豆本人",3,0]
+]
+},
+
+{
+q:"對方承認自己就是他。",
+a:[
+["保密",2,0],
+["問他怎麼拿到聯絡方式",1,0],
+["截圖收藏",0,0]
+]
+},
+
+{
+q:"他開始常常找你聊天。",
+a:[
+["正常聊天",1,0],
+["分享生活",2,0],
+["每天等他訊息",3,0]
+]
+},
+
+{
+q:"演唱會後台，他邀請你留下。",
+a:[
+["拒絕",0,0],
+["留下聊天",2,0],
+["偷偷合照",3,0]
+]
+},
+
+{
+q:"有狗仔在附近。",
+a:[
+["立刻離開",1,0],
+["戴口罩離開",2,0],
+["繼續和他待在一起",3,2]
+]
+},
+
+{
+q:"他送你生日禮物。",
+a:[
+["私下珍藏",2,0],
+["感謝他",1,0],
+["發限動炫耀",3,2]
+]
+},
+
+{
+q:"朋友懷疑你和他有關係。",
+a:[
+["否認",1,0],
+["轉移話題",2,0],
+["暗示是真的",3,1]
+]
+},
+
+{
+q:"他因為行程壓力很大。",
+a:[
+["安慰他",2,0],
+["陪他聊天",2,0],
+["跑去探班",3,0]
+]
+},
+
+{
+q:"他約你深夜見面。",
+a:[
+["拒絕",0,0],
+["去但低調",2,0],
+["去熱門地點",3,2]
+]
+},
+
+{
+q:"網路開始出現緋聞猜測。",
+a:[
+["不回應",2,0],
+["緊張詢問他",1,0],
+["偷偷看討論區反應",0,0]
+]
+},
+
+{
+q:"他說：『如果有一天被發現怎麼辦？』",
+a:[
+["希望保護彼此",2,0],
+["相信能撐過去",1,0],
+["直接公開算了",3,2]
+]
+},
+
+{
+q:"你收到站姐偷拍照。",
+a:[
+["刪除",2,0],
+["傳給他看",1,0],
+["收藏研究",0,0]
+]
+},
+
+{
+q:"他想送你回家。",
+a:[
+["拒絕",1,0],
+["繞路避開人群",2,0],
+["一起走正門",3,2]
+]
+},
+
+{
+q:"團體正值回歸期。",
+a:[
+["減少聯絡",2,0],
+["默默支持",2,0],
+["要求見面",3,0]
+]
+},
+
+{
+q:"他被拍到疑似戀愛。",
+a:[
+["安慰他",2,0],
+["一起想辦法",2,0],
+["發文陰陽怪氣",3,2]
+]
+},
+
+{
+q:"公司開始調查。",
+a:[
+["保持低調",2,0],
+["暫停聯絡",1,0],
+["偷偷見面",3,2]
+]
+},
+
+{
+q:"他向你告白。",
+a:[
+["答應但保密",2,0],
+["考慮一下",1,0,"18B"],
+["馬上拍合照紀念",3,2]
+]
+},
+
+{
+q:"狗仔開出高價購買線索。",
+a:[
+["完全不理",2,0],
+["緊張刪紀錄",1,0],
+["和朋友討論",0,0]
+]
+},
+
+{
+q:"你們被拍到同框。",
+a:[
+["各自離開",2,0],
+["交給公司處理",1,0],
+["牽手離開",3,3]
+]
+}
+
+];
+
+function showQuestion(){
+
+if(q>=questions.length){
+finish();
+return;
+}
+
+document.getElementById("question").innerText=
+(q+1)+". "+questions[q].q;
+
+let html="";
+
+questions[q].a.forEach(choice=>{
+
+html+=`
+<button onclick="answer(${choice[1]},${choice[2]},'${choice[3]||""}')">
+${choice[0]}
+</button>
+`;
+
+});
+
+document.getElementById("choices").innerHTML=html;
+}
+
+function answer(l,e,special){
+
+love+=l;
+exposure+=e;
+
+if(special==="18B"){
+chose18B=true;
+}
+
+document.getElementById("love").innerText=love;
+document.getElementById("exposure").innerText=exposure;
+
+q++;
+showQuestion();
+}
+
+function finish(){
+
+let title="";
+let text="";
+
+if(chose18B && love>30){
+
+title="👑 隱藏結局：錯過";
+
+text="你沒有立刻答應告白。後來他因海外發展離開，多年後你在演唱會上再次見到他。";
+
+}
+
+else if(love>=35 && exposure>=13){
+
+title="🌪️ 全網炎上";
+
+text="因為太明目張膽，戀情全面曝光。代言解約、活動取消，在巨大壓力下他退出演藝圈。";
+
+}
+
+else if(love>=25 && exposure>=8){
+
+title="⚡ 戀情曝光";
+
+text="戀愛消息被媒體揭露，公司否認、粉絲爭吵，最終感情在壓力中逐漸瓦解。";
+
+}
+
+else if(love>=21){
+
+title="🥀 秘密戀人";
+
+text="沒有人知道這段感情，你們在聚光燈照不到的地方偷偷相愛。";
+
+}
+
+else{
+
+title="💔 只是粉絲";
+
+text="多年後，他依然是舞台上的明星，而你只是觀眾席裡默默支持他的人。";
+
+}
+
+document.querySelector(".container").innerHTML=`
+<div class="ending">
+<h1>${title}</h1>
+<p>${text}</p>
+<h2>好感度：${love}</h2>
+<h2>曝光值：${exposure}</h2>
+<button onclick="location.reload()">重新開始</button>
+</div>
+`;
+
+}
+
+showQuestion();
+
+</script>
+
+</body>
+</html>
