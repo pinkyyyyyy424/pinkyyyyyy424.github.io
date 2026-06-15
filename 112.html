@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>愛豆戀愛模擬器</title>
+
+<style>
+/* ... 樣式保持不變 ... */
+:root {
+    --bg: #fff0f5;
+    --card: #ffffff;
+    --text: #4a3040;
+    --accent: #ff6b8a;
+    --pink-light: #ffe0ea;
+    --pink-mid: #ffb8cc;
+    --choice-bg: #fff5f7;
+    --choice-hover: #ffe0ea;
+    --border: #ffd6e0;
+    --shadow: rgba(255,107,138,0.12);
+}
+
+body {
+    font-family: "Noto Serif TC", "Source Han Serif TC", "Microsoft JhengHei", serif;
+    background: linear-gradient(135deg, #ffe8f0, #fff0f5, #ffe8f0);
+    color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 560px;
+    background: var(--card);
+    padding: 36px 28px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px var(--shadow), 0 0 0 1px var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 20px; right: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pink-mid), transparent);
+    border-radius: 2px;
+}
+
+h1 {
+    text-align: center;
+    font-weight: 500;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    margin: 0 0 28px 0;
+}
+
+.stats {
+    display: none;
+}
+
+#question {
+    font-size: 16px;
+    line-height: 1.9;
+    margin-bottom: 24px;
+    color: var(--text);
+    min-height: 60px;
+    text-align: center;
+}
+
+#choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.choice-btn {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--choice-bg);
+    color: #6b4a5a;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.choice-btn:hover {
+    background: var(--choice-hover);
+    color: var(--accent);
+    border-color: var(--pink-mid);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255,107,138,0.15);
+}
+
+.choice-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.ending {
+    text-align: center;
+    line-height: 2;
+}
+
+.ending h2 {
+    color: var(--accent);
+    font-weight: 500;
+    letter-spacing: 3px;
+    font-size: 22px;
+    margin: 16px 0;
+}
+
+.ending p {
+    color: #7a5a6a;
+    font-size: 14px;
+    line-height: 2;
+    margin: 20px 0;
+}
+
+.ending .stats-final {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 24px 0;
+    font-size: 13px;
+    color: #b894a4;
+    letter-spacing: 2px;
+}
+
+.ending .stats-final span {
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.ending button {
+    text-align: center;
+    margin-top: 20px;
+    border-color: var(--pink-mid);
+    color: var(--accent);
+    background: #fff5f7;
+    cursor: pointer;
+    padding: 14px 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.ending button:hover {
+    background: #ffe0ea;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(255,107,138,0.15);
+}
+
+.flavor-text {
+    font-size: 11px;
+    color: #d4a0b4;
+    text-align: center;
+    margin-top: 28px;
+    letter-spacing: 4px;
+}
+
+/* 進度條 */
+.progress-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+    background: var(--accent);
+    width: 8px;
+    height: 8px;
+}
+
+.progress-dot.done {
+    background: var(--pink-mid);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>💖 愛豆戀愛模擬器</h1>
+
+    <div class="stats" style="display:none;">
+        <span>🖤 羈絆 <span id="bond">0</span></span>
+        <span>🔥 曝光 <span id="risk">0</span></span>
+    </div>
+
+    <div id="progress" class="progress-dots"></div>
+    <div id="question"></div>
+    <div id="choices"></div>
+    <div class="flavor-text">· 秘密 · 曖昧 · 選擇 ·</div>
+</div>
+
+<script>
+
+let bond = 0;
+let risk = 0;
+let q = 0;
+const totalQ = 20;
+
+// 追蹤關鍵選擇
+let flags = {
+    gaveNumber: false,
+    rejectedLove: false,
+    metMembers: false,
+    gotCaught: false,
+    companyPressure: false,
+    memberInvolved: false,
+    dispatchPhoto: false,
+    choseSilence: 0,
+    choseBold: 0,
+};
+
+// 繪製進度點點
+function renderProgress() {
+    const container = document.getElementById("progress");
+    let html = "";
+    for (let i = 0; i < totalQ; i++) {
+        let cls = "progress-dot";
+        if (i < q) cls += " done";
+        if (i === q) cls += " active";
+        html += `<div class="${cls}"></div>`;
+    }
+    container.innerHTML = html;
+}
+
+const questions = [
+    // 1
+    {
+        q: "簽售會上，他在你面前多停了三秒。你的手還在他掌心，他用只有你聽得到的音量說：『我記得妳。上次妳也來了。』",
+        a: [
+            ["輕聲回應『因為想見你』，在他手心輕輕勾了一下", 3, 1, {choseBold:1}],
+            ["愣住，低頭抽回手，什麼都沒說", 1, 0, {choseSilence:1}],
+            ["微笑點頭，把事先準備好的小紙條塞進他掌心", 2, 2, {gaveNumber:true}],
+        ]
+    },
+    // 2
+    {
+        q: "三天後，一個陌生私密帳號追蹤了你。沒有頭像，沒有貼文，但你一看就知道是他。第一條私訊只有一句：『紙條上的號碼是真的嗎？』",
+        a: [
+            ["回覆『你打打看就知道了』", 2, 1, {}],
+            ["已讀不回，等了整整一天才打字：『是真的。』", 1, 0, {choseSilence:1}],
+            ["立刻回覆，然後刪掉對話紀錄，怕被發現", 3, 0, {choseBold:1}],
+        ]
+    },
+    // 3
+    {
+        q: "深夜，他打了電話過來。背景有成員的打鬧聲，他壓低聲音說：『等一下，我去外面。』你聽到門關上的聲音，然後他說：『好了。現在只有我了。』",
+        a: [
+            ["問他『你的成員知道你在打電話給誰嗎？』", 1, 1, {}],
+            ["什麼都不問，只是聽他說話", 2, 0, {choseSilence:1}],
+            ["開玩笑說『我也想見你的成員』", 3, 2, {choseBold:1}],
+        ]
+    },
+    // 4
+    {
+        q: "第一次私下見面。他選了一間只接受熟客預約的日式料亭，包廂在最裡面，穿過好幾道門。他比你早到，已經點好了菜。你坐下時，他沒有說『妳好』，只是把筷子遞給你，筷尖朝向自己。",
+        a: [
+            ["接過筷子，輕聲問：『你常常帶人來這裡嗎？』", 2, 0, {}],
+            ["什麼都不問，靜靜吃完這頓飯", 2, 0, {choseSilence:1}],
+            ["在桌子下輕輕碰了他的膝蓋，沒有說任何話", 3, 1, {choseBold:1}],
+        ]
+    },
+    // 5
+    {
+        q: "你要離開時，他拉住你的手腕。『再待一下。』不是請求，但語氣裡有某種你沒聽過的柔軟。他的拇指在你腕骨上來回摩挲，像是在記住你的脈搏。",
+        a: [
+            ["坐回去，反手握住他的手，放在自己膝蓋上", 3, 1, {choseBold:1}],
+            ["說『下次吧』，輕輕抽回手，但沒有立刻起身", 2, 0, {}],
+            ["低頭看著他握著你的那隻手，沉默了很久", 2, 0, {choseSilence:1}],
+        ]
+    },
+    // 6
+    {
+        q: "回歸期開始了。他的訊息從每天變成三天一次，最後變成已讀不回。你在社群上看到他在舞台上完美無瑕的笑容，忽然覺得那個人和包廂裡握著你手的人不是同一個。",
+        a: [
+            ["不發訊息。只是每晚在相同時間，對著他灰色的頭像說晚安", 1, 0, {choseSilence:1}],
+            ["傳了一條『舞台很棒，早點休息』，沒有等他回覆", 2, 0, {}],
+            ["在粉絲社群裡發了一篇隱晦的動態：『想念不是佔有，是等。』", 1, 2, {risk:1}],
+        ]
+    },
+    // 7
+    {
+        q: "兩週後，他終於回訊息了。只有一行字：『今天可以見面嗎。』時間是凌晨一點。",
+        a: [
+            ["立刻換衣服出門", 3, 2, {choseBold:1}],
+            ["回『太晚了，明天好嗎？』", 1, 0, {}],
+            ["已讀。十分鐘後傳了地址給他：『我在這裡等你。』", 3, 1, {choseBold:1}],
+        ]
+    },
+    // 8
+    {
+        q: "他在你家樓下，穿著黑色帽T，帽子壓得很低。你下樓時，他靠在車門上，看到你沒有笑，只是把你拉進懷裡。他的擁抱很用力，像是在確認你是真的。他身上有淡淡的酒味。",
+        a: [
+            ["環住他的背，輕聲問：『怎麼了？』", 2, 0, {}],
+            ["沒有問任何事，只是讓他抱著", 2, 0, {choseSilence:1}],
+            ["把他拉上樓，讓他躺在你的沙發上，幫他倒了一杯溫水", 3, 1, {}],
+        ]
+    },
+    // 9
+    {
+        q: "他在你的沙發上睡著了。你蹲在旁邊看他，發現他的睫毛很長，嘴唇微微張開，睡著的時候像另一個人——不是舞台上的那個，是只屬於此刻的。他忽然睜開眼，看著你，低聲說：『你在偷看我。』",
+        a: [
+            ["『對。』沒有否認，繼續看著他", 3, 1, {choseBold:1}],
+            ["站起來，假裝去倒水", 1, 0, {}],
+            ["蹲回去，伸手輕輕把他的碎髮從額前撥開", 2, 0, {}],
+        ]
+    },
+    // 10
+    {
+        q: "某天，他的成員突然追蹤了你的私密帳號。沒有打招呼，沒有私訊，就只是追蹤。你看著那個追蹤通知，心臟狂跳。是他給的嗎？還是他成員自己發現的？",
+        a: [
+            ["私訊他：『你成員追蹤我了，你知道嗎？』", 2, 1, {memberInvolved:true}],
+            ["什麼都不做，讓那個追蹤靜靜躺在那裡", 1, 0, {choseSilence:1}],
+            ["追蹤回去。沒有私訊，只是追蹤回去", 2, 1, {metMembers:true}],
+        ]
+    },
+    // 11
+    {
+        q: "他約你見面，說『想讓你見一個人』。你到了約定的地方，發現包廂裡不只他一個。另一個男生坐在角落，帽簷壓得很低，但你看得出那雙眼睛——是他的成員。",
+        a: [
+            ["大方地坐下，對那個人微笑點頭：『你好，我是他的——朋友。』", 2, 1, {metMembers:true}],
+            ["愣在門口，用眼神問他『為什麼不先說？』", 1, 0, {}],
+            ["坐下來，點了一杯酒，說：『所以現在是面試嗎？』", 3, 2, {choseBold:1, metMembers:true}],
+        ]
+    },
+    // 12
+    {
+        q: "他的成員離開前，在門口回頭看了你一眼，低聲說了一句：『他最近練習一直恍神，現在我知道為什麼了。』不是指責，但也不是祝福。",
+        a: [
+            ["回答：『那我會讓他專心一點。』", 3, 1, {choseBold:1}],
+            ["沉默，然後說：『抱歉。』", 1, 0, {choseSilence:1}],
+            ["什麼都沒說，只是輕輕點了一下頭", 2, 0, {}],
+        ]
+    },
+    // 13
+    {
+        q: "公司開始懷疑了。經紀人私下找他談過，內容他沒有告訴你，但那之後他傳訊息的頻率明顯變少了。他說：『公司說現在是關鍵期。』你從他的語氣裡聽出了一點從未有過的疲憊。",
+        a: [
+            ["說『我等你。不管多久。』", 2, 0, {choseSilence:1, companyPressure:true}],
+            ["問他『你需要我消失嗎？』", 1, 0, {companyPressure:true}],
+            ["沒有回覆，但隔天寄了一封沒有署名的信到他公司，裡面只有一片銀杏葉", 2, 1, {companyPressure:true}],
+        ]
+    },
+    // 14
+    {
+        q: "有媒體拍到了你們。不是正面，是一個背影，在深夜的巷口，他拉著你的手，你回頭看他。照片還沒有公開，但他公司已經收到消息了。他打給你時，聲音很平靜：『我們要談一下。』",
+        a: [
+            ["約他在第一次見面的料亭。坐下後說：『不管接下來發生什麼，我不會否認我喜歡你。』", 3, 2, {dispatchPhoto:true, choseBold:1}],
+            ["說：『你決定。你要我消失，我就消失。』", 1, 0, {dispatchPhoto:true, choseSilence:1}],
+            ["沉默很久，然後問：『你的成員知道嗎？』", 2, 1, {dispatchPhoto:true}],
+        ]
+    },
+    // 15
+    {
+        q: "他說公司開出了條件：要嘛否認，要嘛暫停活動。他沒有立刻給答案，但他在你面前把合約條款一條一條攤開，說：『你看，這裡寫的是——』你打斷了他。",
+        a: [
+            ["把他的合約輕輕闔上，說：『不要給我看這個。你只要告訴我，你要什麼。』", 3, 1, {choseBold:1}],
+            ["認真看完合約，然後說：『否認吧。你的舞台比什麼都重要。』", 1, 0, {choseSilence:1}],
+            ["把合約推開，什麼都沒說，只是起身坐到他旁邊，靠著他的肩膀", 2, 0, {}],
+        ]
+    },
+    // 16
+    {
+        q: "媒體的照片最終沒有發出去。有人壓下來了。你不知道是他公司還是他本人。他告訴你這個消息時，語氣很淡，好像在說今天天氣不錯。但你發現他的手指在桌上輕輕敲著——那是他在忍。",
+        a: [
+            ["握住他的手，說：『沒事了。』", 2, 0, {}],
+            ["問他：『你付出了什麼代價？』", 1, 1, {}],
+            ["沒有說話，只是把他的手指一根一根輕輕按住，不讓他繼續敲", 3, 0, {}],
+        ]
+    },
+    // 17
+    {
+        q: "他在粉絲見面會上哭了。不是那種舞台上的眼淚，是真的、控制不住的。你坐在台下，看著他低著頭用袖子壓住眼睛，全場粉絲都在喊『不要哭』，但你知道那些眼淚有一部分是你的。",
+        a: [
+            ["沒有出聲，只是舉著手幅，上面寫的不是應援詞，而是你們之間的暗號", 3, 1, {choseBold:1}],
+            ["安靜地看著，沒有舉手幅，沒有喊叫", 2, 0, {choseSilence:1}],
+            ["散場後傳訊息給他：『我看到了。不用忍。』", 2, 0, {}],
+        ]
+    },
+    // 18
+    {
+        q: "他的成員終於私訊你了。只有一句：『哥最近不太好，你知道嗎。』這不是指責，是求助。他接著說：『我沒有要你們分手。我只是想問，有沒有什麼是我可以做的。』",
+        a: [
+            ["回覆：『陪著他就好。不用做任何事。』", 2, 0, {memberInvolved:true}],
+            ["說：『抱歉，給你們添麻煩了。』", 1, 0, {}],
+            ["回：『明天我會見他。你要一起來嗎？』", 3, 1, {choseBold:1, memberInvolved:true}],
+        ]
+    },
+    // 19
+    {
+        q: "他向你告白。不是第一次說喜歡，但這次不一樣。他說：『我不知道未來會怎樣，但我不想在未來裡沒有你。』他的聲音沒有顫抖，但握著你的手很用力。",
+        a: [
+            ["說『我也愛你』，然後吻他", 3, 1, {choseBold:1}],
+            ["沉默很久，然後輕聲問：『你確定嗎？你的舞台、你的成員、你的粉絲——』", 1, 0, {rejectedLove:true}],
+            ["沒有說話，只是把他拉進懷裡", 2, 0, {}],
+        ]
+    },
+    // 20
+    {
+        q: "有狗仔開出高價，要買你們的線索。消息是從內部傳出來的——某個曾見過你們的工作人員，把資訊賣給了媒體。他打給你時，聲音還是很平靜，但你聽到背景有經紀人焦慮的踱步聲。",
+        a: [
+            ["說：『讓它爆。我不怕。』", 3, 3, {choseBold:1, gotCaught:true}],
+            ["說：『你先否認。剩下的我來扛。』", 1, 0, {choseSilence:1, gotCaught:true}],
+            ["沉默了很久，然後說：『你愛我嗎？』", 2, 1, {gotCaught:true}],
+        ]
+    },
+];
+
+function showQuestion() {
+    if (q >= questions.length) {
+        finish();
+        return;
+    }
+    renderProgress();
+    document.getElementById("question").innerText = (q + 1) + ". " + questions[q].q;
+    
+    const choicesContainer = document.getElementById("choices");
+    choicesContainer.innerHTML = "";
+    
+    questions[q].a.forEach((choice, index) => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = choice[0];
+        // 把索引存起來，點擊時再從 questions[q].a[index] 取資料
+        btn.addEventListener("click", function() {
+            const selected = questions[q].a[index];
+            answer(selected[1], selected[2], selected[3] || {});
+        });
+        choicesContainer.appendChild(btn);
+    });
+}
+
+function answer(b, r, extraFlags) {
+    bond += b;
+    risk += r;
+    if (extraFlags && typeof extraFlags === 'object') {
+        Object.keys(extraFlags).forEach(key => {
+            if (key === 'choseSilence') flags.choseSilence += extraFlags[key];
+            else if (key === 'choseBold') flags.choseBold += extraFlags[key];
+            else if (key === 'risk') risk += extraFlags[key];
+            else flags[key] = extraFlags[key];
+        });
+    }
+    // 隱藏更新
+    document.getElementById("bond").innerText = bond;
+    document.getElementById("risk").innerText = risk;
+    q++;
+    showQuestion();
+}
+
+function finish() {
+    let title = "";
+    let text = "";
+    let extraDetail = "";
+
+    if (flags.gotCaught && risk >= 15 && flags.choseBold >= 4) {
+        title = "🌪️ 全網炎上 · 但你們沒有放手";
+        text = "照片曝光那天，他在社群上發了一張照片——不是道歉聲明，是一張空景。深夜的巷口，路燈，和地上兩個長長的影子。他寫：『我沒有什麼要否認的。』粉絲分成兩派，代言掉了兩個，但他沒有放開你的手。你在他的演唱會後台，看到他對著鏡子深呼吸，然後轉頭對你笑：『走吧。上台了。』";
+        extraDetail = "你選擇了大膽，也承受了代價。但你們還在一起。";
+    }
+    else if (flags.gotCaught && risk >= 12) {
+        title = "⚡ 戀情曝光 · 被迫沉默";
+        text = "照片被媒體買下那天，他公司發了聲明：『只是朋友。』他沒有反駁，也沒有解釋。你看到他站在記者會上，穿著整齊的西裝，說出那兩個字時喉結輕輕滾動了一下。你知道那不是真的。你們都知道。但舞台比愛情更需要保護。";
+        extraDetail = "多年後，你們在某個場合擦肩而過，他回頭看了你一眼，什麼都沒說。";
+    }
+    else if (flags.rejectedLove && bond >= 25) {
+        title = "🥀 錯過 · 隱藏結局";
+        text = "你沒有立刻答應他的告白。他要去海外發展了，那天在機場，他回頭看了你好幾次，但你始終沒有開口。多年後你去看他的演唱會，他在台上說：『下一首歌，寫給一個沒有說再見的人。』燈光暗下來，你才發現自己哭了。";
+    }
+    else if (bond >= 28 && risk <= 10 && flags.choseSilence >= 4) {
+        title = "🖤 影子情人 · 守護者";
+        text = "沒有人知道你們在一起。你在他的每一場演唱會都坐在同一區、同一排，他每次經過那側舞台時都會多停一步。那是只有你們知道的暗號。經紀人知道，成員知道，但他們不說。因為你從來沒有要過任何東西。";
+        extraDetail = "你是他的影子。而他在舞台的光裡，為你留了一小塊暗處。";
+    }
+    else if (bond >= 25 && risk <= 12 && flags.metMembers) {
+        title = "🕶️ 圈內公開的秘密";
+        text = "他的成員們知道了。沒有反對，沒有公開，只是偶爾在群組裡發一句『哥今天去找她嗎？』或是『幫我問她上次那個可頌在哪買的』。你不再是他的秘密，而是他的日常——被少數人守護著的日常。";
+    }
+    else if (bond >= 20 && risk <= 8) {
+        title = "🌙 秘密戀人";
+        text = "沒有人知道這段感情。你們在聚光燈照不到的地方偷偷相愛，在凌晨的巷口散步，在關了燈的練習室裡分食一盒便當。他說：『如果有一天不做偶像了，第一件事就是牽著你走在江南大街。』你說：『那我就等那一天。』";
+    }
+    else if (risk >= 10 && bond < 15) {
+        title = "💔 被吞沒的愛";
+        text = "壓力太大了。他不能公開，你不能承受。最後一次見面，你們什麼都沒說，只是對坐著把那頓飯吃完。他幫你叫了代駕，關上車門時，你看到他站在餐廳門口，沒有揮手，只是站著。";
+    }
+    else {
+        title = "🎫 只是粉絲";
+        text = "多年後，他依然是舞台上的那個人。你還是會去看他的演唱會，只是不再坐在他會看到的那一區。螢幕上他的臉依然完美無瑕，而你手裡拿的不再是應援棒，只是一張普通的門票。";
+    }
+
+    document.querySelector(".container").innerHTML = `
+        <div class="ending">
+            <h1>${title}</h1>
+            <p>${text}</p>
+            ${extraDetail ? `<p style="font-style:italic;color:#b894a4;">${extraDetail}</p>` : ''}
+            <button onclick="location.reload()">💖 重新開始</button>
+            <p style="font-size:11px;color:#d4a0b4;margin-top:24px;">· 每個選擇都是一條岔路 ·</p>
+        </div>
+    `;
+}
+
+renderProgress();
+showQuestion();
+
+</script>
+</body>
+</html>
